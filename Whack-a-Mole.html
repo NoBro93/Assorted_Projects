@@ -1,0 +1,162 @@
+<!--
+JS whack-a-mole game started on Khan Academy
+conversion from Khan Academy JS interpreter to independent html taken from
+http://stackoverflow.com/questions/25341597/how-can-khan-academy-computer-programs-be-run-offline-or-on-my-own-website
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Whack-a-Mole</title>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    var canvas = document.getElementById("canvas");
+    var processing = new Processing(canvas, function(processing) {
+        processing.size(window.innerWidth - 30, window.innerHeight - 30);
+        processing.background(0xFFF);
+
+        var mouseIsPressed = false;
+        processing.mousePressed = function () { mouseIsPressed = true; };
+        processing.mouseReleased = function () { mouseIsPressed = false; };
+
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+
+        function getImage(s) {
+            var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
+            processing.externals.sketch.imageCache.add(url);
+            return processing.loadImage(url);
+        }
+
+        var rotateFn = processing.rotate;
+        processing.rotate = function (angle) {
+            rotateFn(processing.radians(angle));
+        };
+
+        with (processing) {
+
+            //VERY SIMPLE WHACK A MOLE GAME, JUST CLICK THE MOLES
+
+            //TODO: 
+                //make a title menu, maybe win page - button for menu
+                //draw something to hit them with? (follows mouse)
+                //maybe score by time / accuracy?
+                //variables for all hardcoded 
+            
+            //GLOBALS
+            var score = 0;
+            //prompt user for number of moles? or maybe base on screen size or level?
+            var moleNumber = Math.floor(width/100); //currently on screen size
+            var stayMin = 100;
+            var stayMax = 200;
+            
+           
+            //MOLE OBJECT
+            var Mole = function(){
+                //TODO: make them not overlap with moles, later buttons
+                do {
+                    this.x = random(50, width-50);
+                    this.y = random(30, height-30);
+                    //repeat until not overlapping with score
+                } while( this.x > (width - 200) && (this.y < 70) );
+                this.isDrawn = true; //should it appear?
+                this.wait = 0; //how long it stays gone
+                this.stay = Math.floor(random(stayMin + 200 * moleNumber, stayMax - 10 * moleNumber)); //how long it stays for you to hit it
+            };
+
+            Mole.prototype.mouseOn = function() {
+                //calculate distance from center of the mole, if less than radius, it's on mole
+                //only count the click if there is actually a mole drawn
+                if (dist(mouseX, mouseY, this.x, this.y) < 30 && this.isDrawn) {
+                    return true;
+                }
+            };
+
+            Mole.prototype.draw = function() {
+                noStroke();
+                fill(125, 93, 43);
+                ellipse(this.x, this.y, 60, 60); // face
+                fill(255, 237, 209);
+                ellipse(this.x, this.y+10, 33, 28); 
+                fill(0, 0, 0);
+                ellipse(this.x-10, this.y-15, 10, 10); // eyes
+                ellipse(this.x+10, this.y-15, 10, 10);
+                ellipse(this.x, this.y-5, 10, 10); // nose
+                ellipse(this.x, this.y+10, 20, 5); // mouth
+            };
+
+            //MAIN
+
+            //array of moles
+            var moles = [];
+            for (var i = 0; i < moleNumber; i++) {
+                moles.push(new Mole());
+            }
+
+            //continuously runs
+            draw = function() {
+                
+                //grass
+                background(52, 168, 83);
+                
+                //score
+                textSize(30);
+                text("Score: " + score, width-150, 40);
+                
+                //holes
+                fill(0, 0, 0);
+                for (var i = 0; i < moles.length; i++) {
+                    ellipse(moles[i].x, moles[i].y, 100, 30);
+                }
+                
+                //moles 
+                for (var i = 0; i < moles.length; i++) {
+                    //if mole has not been clicked, draw it
+                    if (moles[i].isDrawn){
+                        if (moles[i].stay === 0) {
+                            moles[i].isDrawn = false;
+                            score -= 5;
+                            moles[i].wait = Math.floor(random(30, moles.length*30));
+                            moles[i].stay = Math.floor(random(stayMin * moleNumber, stayMax * moleNumber)); 
+                        }
+                        else {
+                            moles[i].stay --;
+                        }
+                        moles[i].draw();
+                    }
+                    else {
+                        //otherwise, if it is ready to come back draw it next time
+                        if (moles[i].wait === 0) {
+                            moles[i].isDrawn = true;
+                        }
+                        //otherwise lower the wait time before it comes back
+                        else {
+                            moles[i].wait -= 1;
+                        }
+                    }
+                }
+            };
+
+            //happens every time mouse is clicked
+            mouseClicked = function(){
+                //if the click happens on a mole that mole disappears and waits a random time
+                for (var i = 0; i < moles.length; i++) {
+                    if (moles[i].mouseOn()){
+                        moles[i].isDrawn = false;
+                        moles[i].wait = Math.floor(random(30, moles.length*30));
+                        score ++;
+                    }
+                }
+            };
+
+
+
+        }
+        if (typeof draw !== 'undefined') processing.draw = draw;
+    });
+  </script>
+</body>
+</html>
