@@ -1,8 +1,11 @@
 #tic tac toe game with AI to play against 
-#maybe have options for 1 player or 2 player
 
 #TODO:
-#AI - decide which move is best - see xkcd?, maybe have easy/hard modes
+#only let players select symbols on the first run
+#AI - maybe have easy/hard modes
+#TODO: to keep stats, check winner against players, maybe in win function
+
+import random 
 
 def printBoard(board):
     print
@@ -20,7 +23,7 @@ def clearBoard(): #sets up a board of all empty spaces
     
 def turn(player, board):
     while True:
-        move = raw_input("Where would you like to move, player " + player + '?') #TODO: fix for computer player
+        move = raw_input("Where would you like to move, player " + player + "? ")
         try:                            #in case a noninteger is input
             move = int(move)
         except:
@@ -36,14 +39,39 @@ def turn(player, board):
             print "Number not in range (1-9)"
     printBoard(board)
 
+def AI(computer, player, board):
+    print "Computer's move:"
+    unused = []                 #list of slots available
+    for i in range(len(board)): 
+        if board[i] == ' ':     #if empty add to available    
+            unused.append(i)
+    for move in unused:
+        board[move] = computer      #try each move
+        if computer == win(board):  #if it wins, leave that and print it
+            printBoard(board)
+            return
+        else:
+            board[move] = ' '       #if not, put the blank back
+    for move in unused:              #otherwise, see if the player could win, has to have its own loop so it tries all wins first
+        board[move] = player
+        if player == win(board):
+            board[move] = computer
+            printBoard(board)
+            return
+        else:                   
+            board[move] = ' '
+    rand = random.randrange(len(unused)-1) #if no move will win, choose a random empty slot
+    board[unused[rand]] = computer
+    printBoard(board)
+    
 def win(board):
     winner = ''
     for i in range(3):
-        n = 3*(i+1) - 1 #used for row calculations, makes (0,1,2) into (3, 6, 9)
+        n = 3*(i+1) - 1 #used for row calculations, makes (0,1,2) into (2, 5, 8)
         if board[i] != ' ':
             if board[i] == board[i+3] and board[i+3] == board[i+6]: #checks column wins
                 winner = board[i]
-        elif board[n] != ' ':
+        if board[n] != ' ':
             if board[n] == board[n - 1] and board[n - 1] == board[n - 2]: #checks rows for wins
                 winner = board[n]
     if board[4] != ' ': 
@@ -52,26 +80,69 @@ def win(board):
         elif board[2] != ' ' and board[2] == board[4] and board[4] == board[6]: #right diagonal 
             winner = board[4]
     return winner
+    
+    
+#GAMEPLAY OPTIONS
+def pvpGame():
+    board = clearBoard() #initialize board as empty
+    #get symbols
+    player1 = raw_input("What symbol would you like to play as? ")[0] #the [0] is in case they enter more than 1 character
+    while True: #to make sure that each player has a unique character
+        player2 = raw_input("What symbol would you like to play as? ")[0]
+        if player2 != player1:
+            break
+    #show board labels
+    print "Use the numbers on this chart to specify which space you would like to move to"
+    printBoard([1,2,3,4,5,6,7,8,9]) #use to show the options for spaces
+    #play game
+    for i in range(9): #TODO: if neither can win, end game early
+        if i%2 == 0:
+            turn(player1, board)
+        else:
+            turn(player2, board)
+        winner = win(board) 
+        if winner != '':
+            print "Player " + winner + " wins!"
+            break
+        if i == 8:
+            print "You've tied!"
+
+def AIgame():
+    board = clearBoard() #initialize board as empty            
+    #set symbols
+    player = raw_input("Would you like to be X or O? ")[0] #the [0] is in case they enter more than 1 character
+    if player == 'X':
+        computer = 'O'
+    else:               #as long as whatever was entered is not X, it can play against X
+        computer = 'X'
+    #show board labels
+    print "Use the numbers on this chart to specify which space you would like to move to"
+    printBoard([1,2,3,4,5,6,7,8,9]) #use to show the options for spaces
+    #play game
+    for i in range(9):
+        if i%2 == 0:
+            turn(player, board)
+        else:
+            AI(computer, player, board)
+        winner = win(board) 
+        if winner != '':
+            if winner == player:
+                print "Player wins!"
+            else:
+                print "Computer wins!"
+            break
+        if i == 8:
+            print "You've tied!"
+    
+#GAMEPLAY
+print "Welcome to Tic Tac Toe!"
+useAI = raw_input("Would you like to play against another player or the computer? ").lower() #TODO: put in checks for bad answers #.lower to make comparing easier
+again = 'y'
+while again == "yes" or again == 'y':
+    if useAI == "computer" or useAI == 'c':
+        AIgame()
+    else:
+        pvpGame()
+    again = raw_input("Rematch? ").lower() 
 
     
-#INITIALIZATIONS
-print "Welcome to Tic Tac Toe!"
-board = clearBoard() #initialize board as empty
-player = raw_input("Would you like to be X or O?")[0] #the [0] is in case they enter more than 1 character
-if player == 'X':   #TODO: may ask second player if one exists
-    computer = 'O'
-else:
-    computer = 'X'
-
-#GAMEPLAY
-print "Use the numbers on this chart to specify which space you would like to move to"
-printBoard([1,2,3,4,5,6,7,8,9]) #use to show the options for spaces
-for i in range(9): #TODO: for now, play as if 2 players, later add a step to calculate the computer's move
-    if i%2 == 0:
-        turn(player, board)
-    else:
-        turn(computer, board)
-    winner = win(board) #TODO: to keep stats, check winner against players, maybe in win function
-    if winner != '':
-        print "Player " + winner + " wins!" #fix wording for computer player
-        break
