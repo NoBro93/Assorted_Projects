@@ -3,9 +3,10 @@
 #TODO:
 #only let players select symbols on the first run
 #AI - maybe have easy/hard modes
-#TODO: to keep stats, check winner against players, maybe in win function
 
 import random 
+gameCounter = 0
+winCount = {}
 
 def printBoard(board):
     print
@@ -83,14 +84,17 @@ def win(board):
     
     
 #GAMEPLAY OPTIONS
-def pvpGame():
+def PVPgame():
+    global winCount
     board = clearBoard() #initialize board as empty
-    #get symbols
+    #get symbols #TODO: fix local issues
     player1 = raw_input("What symbol would you like to play as? ")[0] #the [0] is in case they enter more than 1 character
     while True: #to make sure that each player has a unique character
         player2 = raw_input("What symbol would you like to play as? ")[0]
         if player2 != player1:
             break
+    if gameCounter == 0:
+        winCount={player1 : 0, player2 : 0}
     #show board labels
     print "Use the numbers on this chart to specify which space you would like to move to"
     printBoard([1,2,3,4,5,6,7,8,9]) #use to show the options for spaces
@@ -103,18 +107,22 @@ def pvpGame():
         winner = win(board) 
         if winner != '':
             print "Player " + winner + " wins!"
+            winCount[winner] += 1       #TODO: assumes the same symbols are used through all games
             break
         if i == 8:
             print "You've tied!"
 
 def AIgame():
+    global winCount
     board = clearBoard() #initialize board as empty            
-    #set symbols
+    #set symbols #TODO: fix, local variable issues
     player = raw_input("Would you like to be X or O? ")[0] #the [0] is in case they enter more than 1 character
     if player == 'X':
         computer = 'O'
     else:               #as long as whatever was entered is not X, it can play against X
         computer = 'X'
+    if gameCounter == 0:
+        winCount = {player : 0, computer : 0}
     #show board labels
     print "Use the numbers on this chart to specify which space you would like to move to"
     printBoard([1,2,3,4,5,6,7,8,9]) #use to show the options for spaces
@@ -124,8 +132,9 @@ def AIgame():
             turn(player, board)
         else:
             AI(computer, player, board)
-        winner = win(board) 
+        winner = win(board)
         if winner != '':
+            winCount[winner] += 1       #TODO: assumes the same symbols are used through all games
             if winner == player:
                 print "Player wins!"
             else:
@@ -142,7 +151,10 @@ while again == "yes" or again == 'y':
     if useAI == "computer" or useAI == 'c':
         AIgame()
     else:
-        pvpGame()
+        PVPgame()
     again = raw_input("Rematch? ").lower() 
-
-    
+    gameCounter += 1
+    players = winCount.keys()
+    print "You have played " + str(gameCounter) + " games!"
+    for p in players:               #TODO: change wording for v computer game
+        print "Player " + p + " has won " + str(winCount[p]) + " games!"
