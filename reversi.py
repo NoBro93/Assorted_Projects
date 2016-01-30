@@ -3,8 +3,9 @@
 
 #TODO: count number of games
         #count and display scores per turn
-        #create validity function to test all available spaces to see which are valid to move to
+	#computer as player 2
 
+#globals
 p1, p2 = None, None #characters for each player
 
 def draw_board(board):
@@ -38,40 +39,34 @@ def instructions():
    It's less complicated than it sounds, here's an example:\n'''
         #TODO: display a sample move
 
-def find_lines(board, x, y):
-        '''This function takes in an 8x8 list of a board and x,y the coordinates of the most recent move made on the board. 
-        It returns a list of all of the pieces which may be captured by this move.'''
+def find_lines(board, x, y, p):
+        '''This function takes in an 8x8 list of a board and x,y the coordinates of the move in question and p, the player to move. It returns a list of all of the pieces which may be captured by this move.'''
 
-        #TODO: pretty much everything
         lines = [] #list of tiles to return (that should be captured)
-        if board[x][y] == p1:
-                opp = p2
-                p = p1
-        else:
-                opp = p1
-                p = p2
         for i, j in [ [-1,-1], [-1,0], [-1, 1], [0,-1], [0,1], [1, -1], [1, 0], [1,1] ]:
                 line = [] #stores a list of tiles that match opponent in one direction
-                while x+i in range(8) and y+j in range(8):
-                        while board[x+i][y+j] == opp:
-                                line.append([x+i,y+j])
-                                #continue in that direction
-                                if i>0:
-                                        i += 1
-                                elif i<0:
-                                        i -= 1
-                                if j>0:
-                                        j += 1
-                                elif j<0:
-                                        j -= 1
-                        if board[x+i][y+j] == p:
-                                lines.extend(line)
-                        break
+                if x+i in range(8) and y+j in range(8):
+			while board[x+i][y+j] != p and board[x+i][y+j] != ' ':
+                		line.append([x+i,y+j])
+	                        #continue in that direction
+        	                if i>0:
+                	                i += 1
+                        	elif i<0:
+                                	i -= 1
+	                        if j>0:
+        	                        j += 1
+                	        elif j<0:
+                        	        j -= 1
+				if x+i not in range(8) or y+j not in range(8):
+					break
+	                if x+i in range(8) and y+j in range(8) and board[x+i][y+j] == p:
+        	                lines.extend(line)
                         
         return lines
                                 
 def flip(board, lines):
         '''This function takes in a list of pieces to be captured and the board on which they are. It captures them in place and returns None.'''
+
         if board[lines[0][0]][lines[0][1]] == p1:
                 to = p2
         else:
@@ -80,10 +75,20 @@ def flip(board, lines):
                 board[x][y] = to
         return None
 
+def valid(board, player):
+	'''This function takes a board and a player and finds all of the valid moves for that turn. It returns a list of [x,y] values.'''
+
+	valid = []
+	for x in range(8):
+		for y in range(8):
+			if board[x][y] == ' ' and find_lines(board, x, y, player) != []:
+        			valid.append([x,y])
+	return valid
+
 def turn(player, board):
         '''This function plays a whole turn for a noncomputer player. It takes in the symbol used for the current player and the board being played on.'''
 
-        #TODO: if no moves just return - have to do all options for find, valid function
+	val = valid(board, player)
         while True:
                 move = raw_input("What space would you like to move to, player " + player + "?(# #)\n")
                 try:
@@ -98,46 +103,58 @@ def turn(player, board):
                         continue
                 if not board[x][y] == ' ':
                         print "Space already occupied."
-                else:   #add a condition here for whether valid
+			continue
+                if [x,y] not in val:
+			print "A valid move must capture at least 1 piece."
+		else:
                         board[x][y] = player
                         break
-        lines = find_lines(board, x, y)
-        if lines != []:
-                flip(board, lines)
+	lines = find_lines(board, x, y, player)
+	flip(board, lines)
         draw_board(board)
 
 def game():
         '''This function starts a new game, by initializing any necessary variables and calling each turn or computer move.'''
-
+	
+	#TODO only change the characters on the first play
         global p1, p2
         p1 = raw_input("What symbol would you like to play as?\n")[0] #in case multiple characters entered
         if p1 != 'X':
                 p2 = 'X'
         else:
                 p2 = 'O'
+
+	#initiate board
         board = [[" "]*8 for i in range(8)] #sets up empty board
-        #TODO: use validity function to test for end, for now, until full
-        for i in range(32):
-                turn(p1, board)
-                turn(p2, board)
-        
+	board[3][4] = p1
+	board[4][3] = p1
+	board[3][3] = p2
+	board[4][4] = p2
+	draw_board(board)
+	
+	moved = True #use to see if the other player was able to move last turn
+        while True:
+                if valid(board, p1) == []:
+			if not moved:
+				break
+			moved = False
+		else:
+			turn(p1, board)
+			moved = True
+		if valid(board, p2) == []:
+			if not moved:
+				break
+			moved = False
+		else:	
+			turn(p2, board)
+			moved = True
 #main 
 play = None
-
+#instructions()
 while play not in ["yes", "no", 'y', 'n']:
         play = raw_input("Would you like to play reversi?(y/n)\n").lower()
 while play[0] == 'y':
         game()
         play = raw_input("Would you like to play again?").lower() 
                 #TODO add check loop
-
-#X initiate game
-#X print instructions of some kind
-#turn
-#       choose move - input or AI
-#               skip turn if no moves are available
-#X       flip pieces
-#X      draw board (8x8)
-#win conditions - when all spots are full, highest #
-
 
