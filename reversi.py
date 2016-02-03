@@ -7,6 +7,7 @@
 
 #globals
 p1, p2 = None, None #characters for each player
+gameCounter = 0
 
 def draw_board(board):
         '''This function takes in an 8x8 array and prints it to stdout.'''
@@ -38,6 +39,17 @@ def instructions():
    are changed to the player's symbol. This ends the turn.
    It's less complicated than it sounds, here's an example:\n'''
         #TODO: display a sample move
+
+def score(board):
+	'''This function takes a board as a parameter and returns [score p1, score p2]'''
+	s = [0, 0]
+	for i in board:
+		for j in i:
+			if j == p1:
+				s[0] += 1
+			elif j == p2:
+				s[1] += 1
+	return s
 
 def find_lines(board, x, y, p):
         '''This function takes in an 8x8 list of a board and x,y the coordinates of the move in question and p, the player to move. It returns a list of all of the pieces which may be captured by this move.'''
@@ -112,17 +124,19 @@ def turn(player, board):
 	lines = find_lines(board, x, y, player)
 	flip(board, lines)
         draw_board(board)
+	s = score(board)
+	print "SCORE: Player " + p1 + ": " + str(s[0]) + "  Player " + p2 + ": " + str(s[1])
 
 def game():
         '''This function starts a new game, by initializing any necessary variables and calling each turn or computer move.'''
 	
-	#TODO only change the characters on the first play
-        global p1, p2
-        p1 = raw_input("What symbol would you like to play as?\n")[0] #in case multiple characters entered
-        if p1 != 'X':
-                p2 = 'X'
-        else:
-                p2 = 'O'
+	if gameCounter == 0:
+	        global p1, p2
+	        p1 = raw_input("What symbol would you like to play as?\n")[0] #in case multiple characters entered
+	        if p1 != 'X':
+	                p2 = 'X'
+        	else:
+                	p2 = 'O'
 
 	#initiate board
         board = [[" "]*8 for i in range(8)] #sets up empty board
@@ -133,7 +147,7 @@ def game():
 	draw_board(board)
 	
 	moved = True #use to see if the other player was able to move last turn
-        while True:
+        for i in range(32):
                 if valid(board, p1) == []:
 			if not moved:
 				break
@@ -148,6 +162,13 @@ def game():
 		else:	
 			turn(p2, board)
 			moved = True
+	s = score(board)
+	if s[0] > s[1]:
+		print "Player " + p1 + " wins!"
+	elif s[1] > s[0]:
+		print "Player " + p2 + " wins!"
+	else:
+		print "It's a tie!"
 #main 
 play = None
 #instructions()
@@ -155,6 +176,7 @@ while play not in ["yes", "no", 'y', 'n']:
         play = raw_input("Would you like to play reversi?(y/n)\n").lower()
 while play[0] == 'y':
         game()
-        play = raw_input("Would you like to play again?").lower() 
-                #TODO add check loop
-
+	gameCounter += 1
+	play = None
+	while play not in ["yes", "no", 'y', 'n']:
+	        play = raw_input("Would you like to play again?\n").lower()
