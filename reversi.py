@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 #python2 program that simulates a game of reversi
 
-#TODO: count number of games
-        #count and display scores per turn
-	#computer as player 2
+#TODO: 	#computer as player 2
+
+
+test = open("test.txt", "w") #TEMP TO MAKE TEST
 
 #globals
 p1, p2 = None, None #characters for each player
@@ -122,6 +123,7 @@ def turn(player, board):
                         board[x][y] = player
                         break
 	lines = find_lines(board, x, y, player)
+	test.write(str(y) + ' ' + str(x) + "\n") #TODO using to create test
 	flip(board, lines)
         draw_board(board)
 	s = score(board)
@@ -137,6 +139,7 @@ def game():
 	                p2 = 'X'
         	else:
                 	p2 = 'O'
+		wins = {p1:0, p2:0}
 
 	#initiate board
         board = [[" "]*8 for i in range(8)] #sets up empty board
@@ -165,10 +168,13 @@ def game():
 	s = score(board)
 	if s[0] > s[1]:
 		print "Player " + p1 + " wins!"
+		wins[p1] += 1
 	elif s[1] > s[0]:
 		print "Player " + p2 + " wins!"
+		wins[p2] += 1
 	else:
 		print "It's a tie!"
+	print p1 + " wins: " + wins[p1] + "\n" + p2 + " wins: " + wins[p2]
 #main 
 play = None
 #instructions()
