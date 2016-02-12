@@ -6,6 +6,7 @@
 
 test = open("test.txt", "w") #TEMP TO MAKE TEST
 
+import random
 #globals
 p1, p2 = None, None #characters for each player
 gameCounter = 0
@@ -123,19 +124,37 @@ def turn(player, board):
                         board[x][y] = player
                         break
 	lines = find_lines(board, x, y, player)
-	test.write(str(y) + ' ' + str(x) + "\n") #TODO using to create test
 	flip(board, lines)
         draw_board(board)
 	s = score(board)
 	print "SCORE: Player " + p1 + ": " + str(s[0]) + "  Player " + p2 + ": " + str(s[1])
+
+def cTurn(board, mode):
+	'''This function runs through the computer's turn'''
+	val = valid(board, p2)
+	if mode == "e":
+		rand = random.randrange(len(val)-1)
+		move = [val[rand][0], val[rand][1]]
+	else:
+		#Find the move with the most pieces
+		pass
+	board[move[0]][move[1]] = p2
+	lines = find_lines(board, move[0], move[1], p2)
+	flip(board, lines)
+	draw_board(board)
+	#TODO score, hard
 
 def game():
         '''This function starts a new game, by initializing any necessary variables and calling each turn or computer move.'''
 	
 	if gameCounter == 0:
 	        global p1, p2
+		ai = raw_input("Would you like to play the computer?\n") #TODO error check
+		ai =  ai[0] == "y"
+		if ai:
+			mode = raw_input("Easy or hard mode? (e/h)\n")[0]
 	        p1 = raw_input("What symbol would you like to play as?\n")[0] #in case multiple characters entered
-	        if p1 != 'X':
+	        if p1 != 'X':	#TODO change for pvp
 	                p2 = 'X'
         	else:
                 	p2 = 'O'
@@ -148,7 +167,7 @@ def game():
 	board[3][3] = p2
 	board[4][4] = p2
 	draw_board(board)
-	
+
 	moved = True #use to see if the other player was able to move last turn
         for i in range(32):
                 if valid(board, p1) == []:
@@ -163,7 +182,10 @@ def game():
 				break
 			moved = False
 		else:	
-			turn(p2, board)
+			if ai:
+				cTurn(board, mode)
+			else:
+				turn(p2, board)
 			moved = True
 	s = score(board)
 	if s[0] > s[1]:
@@ -174,14 +196,14 @@ def game():
 		wins[p2] += 1
 	else:
 		print "It's a tie!"
-	print p1 + " wins: " + wins[p1] + "\n" + p2 + " wins: " + wins[p2]
+	print p1 + " wins: " + str(wins[p1]) + "\n" + p2 + " wins: " + str(wins[p2])
 #main 
 play = None
-#instructions()
+instructions()
 while play not in ["yes", "no", 'y', 'n']:
         play = raw_input("Would you like to play reversi?(y/n)\n").lower()
 while play[0] == 'y':
-        game()
+	game()
 	gameCounter += 1
 	play = None
 	while play not in ["yes", "no", 'y', 'n']:
