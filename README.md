@@ -1,2 +1,2 @@
-# Assorted_Projects
-##This repository includes a variety of simple one-file programs that didn't seem to merit their own separate repositories. 
+# Games
+##This repository includes a collection of simple one-file games which didn't seem to merit their own separate repositories. 
